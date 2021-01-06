@@ -154,10 +154,12 @@ audioData = wavfile.read(TEMP_FOLDER + "/audio.wav")[1]
 audioSampleCount = audioData.shape[0]
 maxAudioVolume = getMaxVolume(audioData)
 
+# Various variables for audio processing
 samplesPerFrame = SAMPLE_RATE_IN / FRAME_RATE_OUT
 audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
 hasLoudAudio = np.zeros(audioFrameCount)
 
+# Determine which audio chunks are loud enough
 for i in range(audioFrameCount):
     start = int(i * samplesPerFrame)
     end = min(int((i + 1) * samplesPerFrame), audioSampleCount)
