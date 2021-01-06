@@ -149,25 +149,10 @@ command = "ffmpeg -i " + INPUT_FILE + " -ab 160k -ac 2 -ar " +\
           str(SAMPLE_RATE_IN) + " -vn " + TEMP_FOLDER + "/audio.wav"
 subprocess.call(command, shell=True)
 
-# Copy input file to TEMP folder and convert it into a mp4. Redirect any console output into params.txt.
-command = "ffmpeg -i " + TEMP_FOLDER + "/input.mp4 2>&1"
-f = open(TEMP_FOLDER + "/params.txt", "w")
-subprocess.call(command, shell=True, stdout=f)
-
 # Read the extracted audio
 sampleRate, audioData = wavfile.read(TEMP_FOLDER + "/audio.wav")
 audioSampleCount = audioData.shape[0]
 maxAudioVolume = getMaxVolume(audioData)
-
-# Determine the frame rate
-f = open(TEMP_FOLDER + "/params.txt", 'r+')
-pre_params = f.read()
-f.close()
-params = pre_params.split('\n')
-for line in params:
-    m = re.search('Stream #.*Video.* ([0-9]*) fps', line)
-    if m is not None:
-        FRAME_RATE_OUT = float(m.group(1))
 
 samplesPerFrame = sampleRate / FRAME_RATE_OUT
 audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
