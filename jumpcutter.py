@@ -150,20 +150,20 @@ command = "ffmpeg -i " + INPUT_FILE + " -ab 160k -ac 2 -ar " +\
 subprocess.call(command, shell=True)
 
 # Read the extracted audio
-sampleRate, audioData = wavfile.read(TEMP_FOLDER + "/audio.wav")
+audioData = wavfile.read(TEMP_FOLDER + "/audio.wav")[1]
 audioSampleCount = audioData.shape[0]
 maxAudioVolume = getMaxVolume(audioData)
 
-samplesPerFrame = sampleRate / FRAME_RATE_OUT
+samplesPerFrame = SAMPLE_RATE_IN / FRAME_RATE_OUT
 audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
 hasLoudAudio = np.zeros(audioFrameCount)
 
 for i in range(audioFrameCount):
     start = int(i * samplesPerFrame)
     end = min(int((i + 1) * samplesPerFrame), audioSampleCount)
-    audiochunks = audioData[start:end]
-    maxchunksVolume = float(getMaxVolume(audiochunks)) / maxAudioVolume
-    if maxchunksVolume >= SILENT_THRESHOLD:
+    audioChunks = audioData[start:end]
+    maxChunksVolume = float(getMaxVolume(audioChunks)) / maxAudioVolume
+    if maxChunksVolume >= SILENT_THRESHOLD:
         hasLoudAudio[i] = 1
 
 chunks = [[0, 0, 0]]
