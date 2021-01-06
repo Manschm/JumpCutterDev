@@ -143,7 +143,8 @@ command = "ffmpeg -i " + INPUT_FILE + " -qscale:v " + str(
     FRAME_QUALITY) + " " + TEMP_FOLDER + "/frame%06d.jpg -hide_banner"
 subprocess.call(command, shell=True)
 
-command = "ffmpeg -i " + INPUT_FILE + " -ab 160k -ac 2 -ar " + str(SAMPLE_RATE) + " -vn " + TEMP_FOLDER + "/audio.wav"
+command = "ffmpeg -i " + INPUT_FILE + " -ab 160k -ac 2 -ar " +\
+          str(SAMPLE_RATE_OUT) + " -vn " + TEMP_FOLDER + "/audio.wav"
 
 subprocess.call(command, shell=True)
 
@@ -162,9 +163,9 @@ params = pre_params.split('\n')
 for line in params:
     m = re.search('Stream #.*Video.* ([0-9]*) fps', line)
     if m is not None:
-        frameRate = float(m.group(1))
+        FRAME_RATE_OUT = float(m.group(1))
 
-samplesPerFrame = sampleRate / frameRate
+samplesPerFrame = sampleRate / FRAME_RATE_OUT
 
 audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
 
@@ -199,7 +200,7 @@ for chunk in chunks:
 
     sFile = TEMP_FOLDER + "/tempStart.wav"
     eFile = TEMP_FOLDER + "/tempEnd.wav"
-    wavfile.write(sFile, SAMPLE_RATE, audioChunk)
+    wavfile.write(sFile, SAMPLE_RATE_OUT, audioChunk)
     with WavReader(sFile) as reader:
         with WavWriter(eFile, reader.channels, reader.samplerate) as writer:
             tsm = phasevocoder(reader.channels, speed=NEW_SPEED[int(chunk[2])])
@@ -233,7 +234,7 @@ for chunk in chunks:
 
     outputPointer = endPointer
 
-wavfile.write(TEMP_FOLDER + "/audioNew.wav", SAMPLE_RATE, outputAudioData)
+wavfile.write(TEMP_FOLDER + "/audioNew.wav", SAMPLE_RATE_OUT, outputAudioData)
 
 '''
 outputFrame = math.ceil(outputPointer/samplesPerFrame)
@@ -242,7 +243,7 @@ for endGap in range(outputFrame,audioFrameCount):
 '''
 
 command = "ffmpeg -framerate " + str(
-    frameRate) + " -i " + TEMP_FOLDER + "/newFrame%06d.jpg -i " + \
+    FRAME_RATE_OUT) + " -i " + TEMP_FOLDER + "/newFrame%06d.jpg -i " + \
           TEMP_FOLDER + "/audioNew.wav -strict -2 " + OUTPUT_FILE
 subprocess.call(command, shell=True)
 
