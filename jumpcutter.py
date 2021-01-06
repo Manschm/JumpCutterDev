@@ -13,6 +13,8 @@ import argparse
 from pytube import YouTube
 
 
+# ===== Functions ======================================================================================================
+# Download youtube video
 def downloadFile(url):
     name = YouTube(url).streams.first().download()
     newname = name.replace(' ', '_')
@@ -20,12 +22,14 @@ def downloadFile(url):
     return newname
 
 
+# Returns highest absolut magnitude
 def getMaxVolume(s):
     maxv = float(np.max(s))
     minv = float(np.min(s))
     return max(maxv, -minv)
 
 
+# Copies a single frame
 def copyFrame(inputFrame, outputFrame):
     src = TEMP_FOLDER + "/frame{:06d}".format(inputFrame + 1) + ".jpg"
     dst = TEMP_FOLDER + "/newFrame{:06d}".format(outputFrame + 1) + ".jpg"
@@ -37,14 +41,15 @@ def copyFrame(inputFrame, outputFrame):
     return True
 
 
+# Appends "_ALTERED" to filename string
 def inputToOutputFilename(filename):
     dotIndex = filename.rfind(".")
     return filename[:dotIndex] + "_ALTERED" + filename[dotIndex:]
 
 
+# Creates a new folder at given path
 def createPath(s):
     # assert (not os.path.exists(s)), "The filepath "+s+" already exists. Don't want to overwrite it. Aborting."
-
     try:
         os.mkdir(s)
     except OSError:
@@ -52,7 +57,8 @@ def createPath(s):
                       "and try again.) "
 
 
-def deletePath(s):  # Dangerous! Watch out!
+# Deletes given path
+def deletePath(s):  # TODO: Dangerous! Watch out!
     try:
         rmtree(s, ignore_errors=False)
     except OSError:
@@ -60,6 +66,7 @@ def deletePath(s):  # Dangerous! Watch out!
         print(OSError)
 
 
+# ===== Command line arguments & variables =============================================================================
 parser = argparse.ArgumentParser(
     description='Modifies a video file to play at different speeds when there is sound vs. silence.')
 parser.add_argument('--input_file', type=str, help='the video file you want modified')
@@ -109,8 +116,11 @@ TEMP_FOLDER = "TEMP"
 # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
 AUDIO_FADE_ENVELOPE_SIZE = 400
 
+# ===== Start ==========================================================================================================
+# Create temporary folder
 createPath(TEMP_FOLDER)
 
+# Extract the frames to the temp folder and set their quality via qscale
 command = "ffmpeg -i " + INPUT_FILE + " -qscale:v " + str(
     FRAME_QUALITY) + " " + TEMP_FOLDER + "/frame%06d.jpg -hide_banner"
 subprocess.call(command, shell=True)
@@ -214,7 +224,7 @@ for endGap in range(outputFrame,audioFrameCount):
 '''
 
 command = "ffmpeg -framerate " + str(
-    frameRate) + " -i " + TEMP_FOLDER + "/newFrame%06d.jpg -i " +\
+    frameRate) + " -i " + TEMP_FOLDER + "/newFrame%06d.jpg -i " + \
           TEMP_FOLDER + "/audioNew.wav -strict -2 " + OUTPUT_FILE
 subprocess.call(command, shell=True)
 
