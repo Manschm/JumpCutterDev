@@ -139,7 +139,7 @@ samplesPerFrame = sampleRate / frameRate
 
 audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
 
-hasLoudAudio = np.zeros((audioFrameCount))
+hasLoudAudio = np.zeros(audioFrameCount)
 
 for i in range(audioFrameCount):
     start = int(i * samplesPerFrame)
@@ -150,12 +150,12 @@ for i in range(audioFrameCount):
         hasLoudAudio[i] = 1
 
 chunks = [[0, 0, 0]]
-shouldIncludeFrame = np.zeros((audioFrameCount))
+shouldIncludeFrame = np.zeros(audioFrameCount)
 for i in range(audioFrameCount):
     start = int(max(0, i - FRAME_SPREADAGE))
     end = int(min(audioFrameCount, i + 1 + FRAME_SPREADAGE))
     shouldIncludeFrame[i] = np.max(hasLoudAudio[start:end])
-    if (i >= 1 and shouldIncludeFrame[i] != shouldIncludeFrame[i - 1]):  # Did we flip?
+    if i >= 1 and shouldIncludeFrame[i] != shouldIncludeFrame[i - 1]:  # Did we flip?
         chunks.append([chunks[-1][1], i, shouldIncludeFrame[i - 1]])
 
 chunks.append([chunks[-1][1], audioFrameCount, shouldIncludeFrame[i - 1]])
