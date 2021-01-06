@@ -143,19 +143,23 @@ command = "ffmpeg -i " + INPUT_FILE + " -qscale:v " + str(
     FRAME_QUALITY) + " " + TEMP_FOLDER + "/frame%06d.jpg -hide_banner"
 subprocess.call(command, shell=True)
 
+# Extract the audio with a bitrate ("-ab") of 160K, two audio channels ("-ac 2"), and a bitrate ("-ar") given
+# by the file itself. "-vn" disables any automatic mapping.
 command = "ffmpeg -i " + INPUT_FILE + " -ab 160k -ac 2 -ar " +\
-          str(SAMPLE_RATE_OUT) + " -vn " + TEMP_FOLDER + "/audio.wav"
-
+          str(SAMPLE_RATE_IN) + " -vn " + TEMP_FOLDER + "/audio.wav"
 subprocess.call(command, shell=True)
 
+# Copy input file to TEMP folder and convert it into a mp4. Redirect any console output into params.txt.
 command = "ffmpeg -i " + TEMP_FOLDER + "/input.mp4 2>&1"
 f = open(TEMP_FOLDER + "/params.txt", "w")
 subprocess.call(command, shell=True, stdout=f)
 
+# Read the extracted audio
 sampleRate, audioData = wavfile.read(TEMP_FOLDER + "/audio.wav")
 audioSampleCount = audioData.shape[0]
 maxAudioVolume = getMaxVolume(audioData)
 
+# Determine the frame rate
 f = open(TEMP_FOLDER + "/params.txt", 'r+')
 pre_params = f.read()
 f.close()
@@ -166,9 +170,7 @@ for line in params:
         FRAME_RATE_OUT = float(m.group(1))
 
 samplesPerFrame = sampleRate / FRAME_RATE_OUT
-
 audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
-
 hasLoudAudio = np.zeros(audioFrameCount)
 
 for i in range(audioFrameCount):
