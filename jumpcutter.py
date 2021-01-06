@@ -79,22 +79,21 @@ parser.add_argument('--silent_threshold', type=float, default=0.03,
 parser.add_argument('--sounded_speed', type=float, default=1.00,
                     help="the speed that sounded (spoken) frames should be played at. Typically 1.")
 parser.add_argument('--silent_speed', type=float, default=5.00,
-                    help="the speed that silent frames should be played at. 999999 for jumpcutting.")
+                    help="the speed that silent frames should be played at. 999999 for jump cutting.")
 parser.add_argument('--frame_margin', type=float, default=1,
                     help="some silent frames adjacent to sounded frames are included to provide context. How many "
                          "frames on either the side of speech should be included? That's this variable.")
-parser.add_argument('--sample_rate', type=float, default=44100, help="sample rate of the input and output videos")
+parser.add_argument('--sample_rate', type=float, default=44100, help="sample rate of the output video")
 parser.add_argument('--frame_rate', type=float, default=30,
-                    help="frame rate of the input and output videos. optional... I try to find it out myself, "
-                         "but it doesn't always work.")
+                    help="frame rate of the output video")
 parser.add_argument('--frame_quality', type=int, default=3,
                     help="quality of frames to be extracted from input video. 1 is highest, 31 is lowest, 3 is the "
                          "default.")
 
 args = parser.parse_args()
 
-frameRate = args.frame_rate
-SAMPLE_RATE = args.sample_rate
+FRAME_RATE_OUT = args.frame_rate
+SAMPLE_RATE_OUT = args.sample_rate
 SILENT_THRESHOLD = args.silent_threshold
 FRAME_SPREADAGE = args.frame_margin
 NEW_SPEED = [args.silent_speed, args.sounded_speed]
@@ -117,6 +116,25 @@ TEMP_FOLDER = "TEMP"
 AUDIO_FADE_ENVELOPE_SIZE = 400
 
 # ===== Start ==========================================================================================================
+# Get frame rate
+command = "ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of " \
+          "default=noprint_wrappers=1:nokey=1 " + INPUT_FILE
+stdout = subprocess.run(command, capture_output=True, text=True).stdout
+print("Detected frame rate: " + str(stdout))
+return_values = [int(val) for val in stdout.split('/')]
+FRAME_RATE_IN = return_values[0] / return_values[1]
+
+# Get audio sample rate
+command = "ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of " \
+          "default=noprint_wrappers=1:nokey=1 " + INPUT_FILE
+stdout = subprocess.run(command, capture_output=True, text=True).stdout
+print("Detected sample rate: " + str(stdout))
+SAMPLE_RATE_IN = int(stdout)
+
+# TODO: Make the two independent
+FRAME_RATE_OUT = FRAME_RATE_IN
+SAMPLE_RATE_OUT = SAMPLE_RATE_IN
+
 # Create temporary folder
 createPath(TEMP_FOLDER)
 
